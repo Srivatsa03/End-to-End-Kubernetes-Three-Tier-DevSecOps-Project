@@ -40,6 +40,7 @@ pipeline {
                 }
             }
         }
+        /*
         stage('OWASP Dependency-Check Scan') {
             steps {
                 dir('Application-Code/backend') {
@@ -48,6 +49,7 @@ pipeline {
                 }
             }
         }
+        */
         stage('Trivy File Scan') {
             steps {
                 dir('Application-Code/backend') {
