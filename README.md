@@ -1,60 +1,175 @@
-# Three-Tier Web Application Deployment on AWS EKS using AWS EKS, ArgoCD, Prometheus, Grafana, and Jenkins
-[![LinkedIn](https://img.shields.io/badge/Connect%20with%20me%20on-LinkedIn-blue.svg)](https://www.linkedin.com/in/aman-devops/)
-[![Discord](https://img.shields.io/badge/Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/invite/jdzF8kTtw2)
-[![Medium](https://img.shields.io/badge/Medium-12100E?style=for-the-badge&logo=medium&logoColor=white)](https://medium.com/@amanpathakdevops)
-[![GitHub](https://img.shields.io/github/stars/AmanPathak-DevOps.svg?style=social)](https://github.com/AmanPathak-DevOps)
-[![AWS](https://img.shields.io/badge/AWS-%F0%9F%9B%A1-orange)](https://aws.amazon.com)
-[![Terraform](https://img.shields.io/badge/Terraform-%E2%9C%A8-lightgrey)](https://www.terraform.io)
+# End-to-End Kubernetes Three-Tier DevSecOps Project
 
-![Three-Tier Banner](assets/Three-Tier.gif)
+This repository contains an end-to-end DevSecOps deployment workflow for a three-tier web application on AWS. The stack combines a React frontend, a Node.js/Express backend, MongoDB, Jenkins-based CI/CD, Terraform-provisioned infrastructure, Amazon ECR image publishing, and Kubernetes manifests for deployment on Amazon EKS.
 
-Welcome to the Three-Tier Web Application Deployment project! 🚀
+The application itself is a simple task management app, but the main focus of the project is the delivery pipeline and deployment architecture around it.
 
-This repository hosts the implementation of a Three-Tier Web App using ReactJS, NodeJS, and MongoDB, deployed on AWS EKS. The project covers a wide range of tools and practices for a robust and scalable DevOps setup.
+![Three-Tier Architecture](assets/Three-Tier.gif)
 
-## Table of Contents
-- [Application Code](#application-code)
-- [Jenkins Pipeline Code](#jenkins-pipeline-code)
-- [Jenkins Server Terraform](#jenkins-server-terraform)
-- [Kubernetes Manifests Files](#kubernetes-manifests-files)
-- [Project Details](#project-details)
+## Overview
 
-## Application Code
-The `Application-Code` directory contains the source code for the Three-Tier Web Application. Dive into this directory to explore the frontend and backend implementations.
+The project is organized around four main concerns:
 
-## Jenkins Pipeline Code
-In the `Jenkins-Pipeline-Code` directory, you'll find Jenkins pipeline scripts. These scripts automate the CI/CD process, ensuring smooth integration and deployment of your application.
+- application code for the frontend and backend services
+- Jenkins pipelines for build, scan, image publishing, and deployment manifest updates
+- Terraform for provisioning a Jenkins server and related AWS resources
+- Kubernetes manifests for deploying the frontend, backend, and database tiers
 
-## Jenkins Server Terraform
-Explore the `Jenkins-Server-TF` directory to find Terraform scripts for setting up the Jenkins Server on AWS. These scripts simplify the infrastructure provisioning process.
+## Architecture
 
-## Kubernetes Manifests Files
-The `Kubernetes-Manifests-Files` directory holds Kubernetes manifests for deploying your application on AWS EKS. Understand and customize these files to suit your project needs.
+The deployed system follows a standard three-tier pattern:
 
-## Project Details
-🛠️ **Tools Explored:**
-- Terraform & AWS CLI for AWS infrastructure
-- Jenkins, Sonarqube, Terraform, Kubectl, and more for CI/CD setup
-- Helm, Prometheus, and Grafana for Monitoring
-- ArgoCD for GitOps practices
+1. `Frontend`
+   A React application exposed through an AWS ALB ingress.
+2. `Backend`
+   A Node.js/Express API that serves task CRUD operations and exposes health, readiness, and startup endpoints.
+3. `Database`
+   A MongoDB deployment with persistent storage and credentials supplied through Kubernetes secrets.
 
-🚢 **High-Level Overview:**
-- IAM User setup & Terraform magic on AWS
-- Jenkins deployment with AWS integration
-- EKS Cluster creation & Load Balancer configuration
-- Private ECR repositories for secure image management
-- Helm charts for efficient monitoring setup
-- GitOps with ArgoCD - the cherry on top!
+The CI/CD flow is built around Jenkins:
 
-📈 **The journey covered everything from setting up tools to deploying a Three-Tier app, ensuring data persistence, and implementing CI/CD pipelines.**
+- checkout source code from GitHub
+- run SonarQube analysis
+- run Trivy filesystem and image scans
+- build Docker images
+- push images to Amazon ECR
+- update Kubernetes deployment manifests with the new image tag
 
-## Getting Started
-To get started with this project, refer to our [comprehensive guide](https://amanpathakdevops.medium.com/advanced-end-to-end-devsecops-kubernetes-three-tier-project-using-aws-eks-argocd-prometheus-fbbfdb956d1a) that walks you through IAM user setup, infrastructure provisioning, CI/CD pipeline configuration, EKS cluster creation, and more.
+## Tech Stack
 
-## Contributing
-We welcome contributions! If you have ideas for enhancements or find any issues, please open a pull request or file an issue.
+- React
+- Node.js
+- Express
+- MongoDB
+- Docker
+- Jenkins
+- Terraform
+- AWS EC2
+- Amazon ECR
+- Amazon EKS
+- Kubernetes
+- SonarQube
+- Trivy
+
+## Repository Structure
+
+```text
+Application-Code/
+  frontend/                  React client
+  backend/                   Node.js/Express API
+
+Jenkins-Pipeline-Code/
+  Jenkinsfile-Frontend       CI/CD pipeline for the frontend image
+  Jenkinsfile-Backend        CI/CD pipeline for the backend image
+
+Jenkins-Server-TF/
+  *.tf                       Terraform for Jenkins host, IAM, VPC, and networking
+  tools-install.sh           Bootstrap script for Jenkins server tooling
+
+Kubernetes-Manifests-file/
+  Frontend/                  Frontend deployment and service
+  Backend/                   Backend deployment and service
+  Database/                  MongoDB deployment, PV, PVC, service, and secrets
+  ingress.yaml               AWS ALB ingress configuration
+```
+
+## Application Components
+
+### Frontend
+
+The frontend is a React application that allows users to:
+
+- create tasks
+- mark tasks as completed
+- delete tasks
+- interact with the backend API through a simple task service layer
+
+### Backend
+
+The backend provides REST endpoints for:
+
+- creating tasks
+- listing tasks
+- updating tasks
+- deleting tasks
+
+It also includes:
+
+- `/healthz` for liveness checks
+- `/ready` for readiness checks
+- `/started` for startup checks
+
+### Database
+
+MongoDB is deployed inside the cluster and configured with:
+
+- a Kubernetes deployment
+- a persistent volume and persistent volume claim
+- service discovery for the backend tier
+- secret-based credentials
+
+## Infrastructure and Deployment
+
+### Terraform
+
+The `Jenkins-Server-TF` directory provisions the Jenkins host and supporting AWS resources, including:
+
+- VPC and subnet resources
+- security groups
+- IAM role and instance profile
+- EC2 instance configuration
+
+### Jenkins Pipelines
+
+Both Jenkins pipelines follow a similar pattern:
+
+- clean workspace
+- checkout repository
+- run SonarQube analysis
+- run Trivy scan
+- build Docker image
+- push image to ECR
+- update the Kubernetes deployment manifest with the new image tag
+
+### Kubernetes
+
+The manifests deploy:
+
+- frontend service and deployment
+- backend service and deployment
+- MongoDB service and deployment
+- ALB ingress for external traffic routing
+
+The backend deployment also includes liveness, readiness, and startup probes.
+
+## How To Run
+
+This repository is primarily structured as an infrastructure and deployment project rather than a single-command local app. A typical setup flow is:
+
+1. Provision the Jenkins environment with Terraform from `Jenkins-Server-TF/`.
+2. Configure Jenkins tools and credentials for GitHub, SonarQube, AWS, and ECR.
+3. Build and push frontend and backend images through the Jenkins pipelines.
+4. Apply the Kubernetes manifests to an EKS cluster.
+5. Access the application through the ALB ingress.
+
+## Prerequisites
+
+- AWS account
+- Jenkins server
+- Docker
+- Terraform
+- kubectl
+- AWS CLI
+- EKS cluster
+- SonarQube server
+- Trivy installed on the Jenkins runner
+
+## Notes
+
+- This repository includes deployment manifests and pipeline code, but environment-specific configuration still needs to be supplied through Jenkins credentials, AWS resources, and cluster setup.
+- The manifests currently contain environment-specific image references and ALB/backend URLs, so they should be reviewed before reuse in another AWS account or region.
+- The main value of the project is the end-to-end DevSecOps workflow, not the complexity of the demo application itself.
 
 ## License
-This project is licensed under the [MIT License](LICENSE).
 
-Happy Coding! 🚀
+This project is licensed under the [MIT License](LICENSE).
